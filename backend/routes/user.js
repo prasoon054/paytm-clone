@@ -1,6 +1,6 @@
 const express = require("express");
 const zod = require("zod");
-const User = require("../db");
+const {User, Account} = require("../db");
 const JWT_SECRET = require("../config");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
@@ -16,7 +16,7 @@ const signinBody = zod.object({
     password: zod.string()
 });
 const updateBody = zod.object({
-    password: zod.string.min(6),
+    password: zod.string().min(6),
     firstName: zod.string(),
     lastName: zod.string()
 })
@@ -28,7 +28,7 @@ router.post("/signup", async function(req, res){
             message: "Email already taken / Incorrect inputs"
         })
     }
-    const existingUser = User.findOne({
+    const existingUser = await User.findOne({
         username: req.body.username
     });
     if(existingUser){
@@ -43,7 +43,8 @@ router.post("/signup", async function(req, res){
         balance: 1 + Math.random() * 10000
     })
     const token = jwt.sign({
-        userId: dbUser._id
+        userId: dbUser._id,
+        username: dbUser.username
     }, JWT_SECRET);
     res.json({
         message: "User created successfully",
@@ -63,7 +64,8 @@ router.post("/signin", async function(req, res){
     });
     if(user){
         const token = jwt.sign({
-            userId: user._id
+            userId: user._id,
+            username: user.username
         }, JWT_SECRET);
         res.json({
             message: "User signed in successfully",
@@ -82,12 +84,17 @@ router.put("/", authMiddleware, async function(req, res){
             message: "Error while updating information"
         })
     }
-    await User.updateOne(req.body, {
-        id: req.userId
-    })
+    console.log(req.userId);
+    await User.updateOne({
+        _id: req.userId
+    }, {
+        password: req.body.password,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName
+    });
     res.json({
         message: "Updated successfully"
-    })
+    });
 })
 router.get("/bulk", authMiddleware, async(req, res) => {
     const filter = req.query.filter || "";
