@@ -8,8 +8,7 @@ function App() {
     return (
         <>
         <BrowserRouter>
-        
-        <Appbar></Appbar>
+            <Appbar></Appbar>
         </BrowserRouter>
             {/* <BrowserRouter>
                 <Routes>
