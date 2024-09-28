@@ -3,18 +3,39 @@ import { SubHeading } from "../components/SubHeading";
 import { InputBox } from "../components/InputBox";
 import { Button } from "../components/Button";
 import { ButtonWarning } from "../components/ButtonWarning";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import { useState } from "react";
+import axios from "axios";
 export function Signin(){
-    const handleSignin = () => {
-        console.log("signin handler called");
+    const navigate = useNavigate();
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const handleSignin = async() => {
+        try{
+            const response = await axios.post(
+                "http://localhost:3000/api/v1/user/signin",
+                {username: username, password: password}
+            );
+            const tokenResponse = response.data.token;
+            const user = jwtDecode(tokenResponse);
+            localStorage.setItem("token", "Bearer " + tokenResponse);
+            localStorage.setItem("user", JSON.stringify(user));
+            navigate("/dashboard");
+        }
+        catch(error){
+
+            console.log(error.data);
+        }
     }
-    return <div className='flex justify-center h-screen bg-slate-300'>
+    return  <div className='flex justify-center h-screen bg-slate-300'>
     <div className='flex flex-col justify-center'>
       <div className='p-2 px-4 text-center bg-white rounded-lg w-96 h-max'>
         <Heading label={'Sign in'} />
         <SubHeading label={'Enter your credentials to access your account'} />
         <InputBox
           onChange={(e) => {
-            console.log("Username input changed");
+            setUsername(e.target.value);
           }}
           placeholder='john@gmail.com'
           label={'Email'}
@@ -22,7 +43,7 @@ export function Signin(){
         />
         <InputBox
           onChange={(e) => {
-            console.log("Password input changed");
+            setPassword(e.target.value);
           }}
           placeholder='123456'
           label={'Password'}
@@ -33,7 +54,7 @@ export function Signin(){
         </div>
         <ButtonWarning
           label={"Don't have an account?"}
-          message={'Sign up'}
+          buttonText={'Sign up'}
           to={'/signup'}
         />
       </div>

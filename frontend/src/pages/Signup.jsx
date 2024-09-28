@@ -3,9 +3,31 @@ import { SubHeading } from "../components/SubHeading";
 import { InputBox } from "../components/InputBox";
 import { Button } from "../components/Button";
 import { ButtonWarning } from "../components/ButtonWarning";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 export function Signup(){
-    const handleSignup = () => {
-        console.log("Signup handler called");
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+    const handleSignup = async() => {
+        try{
+            const response = await axios.post(
+                "http://localhost:3000/api/v1/signup",
+                {username, firstName, lastName, password}
+            );
+            const tokenResponse = response.data.token;
+            const user = jwtDecode(tokenResponse).username;
+            localStorage.setItem('token', "Bearer " + tokenResponse);
+            localStorage.setItem("user", user);
+            navigate("/dashboard");
+
+        }
+        catch(error){
+            console.log(error.data);
+        }
     }
     return <div className='flex justify-center h-screen bg-slate-300'>
     <div className='flex flex-col justify-center'>
@@ -47,7 +69,7 @@ export function Signup(){
             </div>
             <ButtonWarning
             label={'Already have an account?'}
-            message={'Sign in'}
+            buttonText={'Sign in'}
             to={'/signin'}
             />
         </div>
